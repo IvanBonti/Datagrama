@@ -7,24 +7,41 @@ import java.net.InetAddress;
 public class DatagramClient {
     public static void main(String[] args) {
         try {
-            DatagramSocket clientSocket = new DatagramSocket();
+            // Fase 1: Solicitud
+            int solicitudPort = 9876;
+            DatagramSocket solicitudSocket = new DatagramSocket();
             InetAddress serverAddress = InetAddress.getByName("localhost");
-            int serverPort = 9876;
 
-            String mensaje = "¡Hola, servidor!";
-            byte[] sendData = mensaje.getBytes();
+            String solicitud = "Solicitud de datos";
+            byte[] solicitudData = solicitud.getBytes();
 
-            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, serverAddress, serverPort);
-            clientSocket.send(sendPacket);
+            DatagramPacket solicitudPacket = new DatagramPacket(solicitudData, solicitudData.length, serverAddress, solicitudPort);
+            solicitudSocket.send(solicitudPacket);
 
-            byte[] receiveData = new byte[1024];
-            DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
-            clientSocket.receive(receivePacket);
+            // Fase 2: Confirmación
+            int confirmacionPort = 9877;
+            DatagramSocket confirmacionSocket = new DatagramSocket(confirmacionPort);
+            byte[] confirmacionData = new byte[1024];
+            DatagramPacket confirmacionPacket = new DatagramPacket(confirmacionData, confirmacionData.length);
+            confirmacionSocket.receive(confirmacionPacket);
 
-            String respuesta = new String(receivePacket.getData(), 0, receivePacket.getLength());
-            System.out.println("Respuesta del servidor: " + respuesta);
+            String confirmacion = new String(confirmacionPacket.getData(), 0, confirmacionPacket.getLength());
+            System.out.println("Confirmación del servidor: " + confirmacion);
 
-            clientSocket.close();
+            // Fase 3: Respuesta
+            int respuestaPort = 9878;
+            DatagramSocket respuestaSocket = new DatagramSocket(respuestaPort);
+            byte[] respuestaData = new byte[1024];
+            DatagramPacket respuestaPacket = new DatagramPacket(respuestaData, respuestaData.length);
+            respuestaSocket.receive(respuestaPacket);
+
+            String respuesta = new String(respuestaPacket.getData(), 0, respuestaPacket.getLength());
+            System.out.println("Respuesta final del servidor: " + respuesta);
+
+            // Cierre de sockets
+            solicitudSocket.close();
+            confirmacionSocket.close();
+            respuestaSocket.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
